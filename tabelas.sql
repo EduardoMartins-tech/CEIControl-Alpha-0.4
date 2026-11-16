@@ -72,10 +72,16 @@ CREATE TABLE IF NOT EXISTS mensagens (
 -- DADOS DE EXEMPLO (PARA APRESENTAÇÃO E TESTES)
 -- ============================================================
 
--- Usuários (Senha: 12345)
+-- Usuários (senha de demonstração: 123456, gravada com hash BCrypt,
+-- que é o formato que o login confere com password_verify)
 INSERT INTO usuarios (nome, email, senha, perfil) VALUES 
-('Eduardo Admin', 'admin@cei.com', '12345', 'admin'),
-('Fernanda Responsável', 'cliente@cei.com', '12345', 'cliente');
+('Eduardo Admin', 'admin@cei.com', '$2y$10$RTH1KMsMS775a73AD4pc/OQiJi91U/8hlCCz2l6PbmWceUoHHj.pW', 'admin'),
+('Mariana Educadora', 'usuario@cei.com', '$2y$10$RTH1KMsMS775a73AD4pc/OQiJi91U/8hlCCz2l6PbmWceUoHHj.pW', 'usuario'),
+('Fernanda Responsável', 'cliente@cei.com', '$2y$10$RTH1KMsMS775a73AD4pc/OQiJi91U/8hlCCz2l6PbmWceUoHHj.pW', 'cliente');
+
+-- Bancos já criados com a versão anterior deste arquivo tinham a senha em
+-- texto puro e não conseguiam fazer login: converte para o hash acima.
+UPDATE usuarios SET senha = '$2y$10$RTH1KMsMS775a73AD4pc/OQiJi91U/8hlCCz2l6PbmWceUoHHj.pW' WHERE senha NOT LIKE '$2y$%';
 
 -- Fornecedores
 INSERT INTO fornecedores (nome, cnpj, email, telefone, data_cadastro) VALUES

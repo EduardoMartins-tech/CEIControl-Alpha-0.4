@@ -5,10 +5,12 @@ if (!isset($_SESSION['perfil']) || !in_array($_SESSION['perfil'], ['admin', 'usu
 }
 
 require_once __DIR__ . '/../../../config/database.php';
+require_once __DIR__ . '/../../../app/controllers/ProdutoController.php';
+require_once __DIR__ . '/../../../app/controllers/ServicoController.php';
 
 $pagina_atual = 'estoque';
-$produtos = $conn->query("SELECT * FROM produtos ORDER BY nome ASC");
-$servicos = $conn->query("SELECT * FROM servicos ORDER BY nome ASC");
+$produtos = (new ProdutoController($conn))->listar();
+$servicos = (new ServicoController($conn))->listar();
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -33,6 +35,7 @@ $servicos = $conn->query("SELECT * FROM servicos ORDER BY nome ASC");
             <?php if ($_SESSION['perfil'] == 'admin'): ?>
             <div style="display:flex;gap:10px;">
                 <a href="<?= BASE_URL ?>produtos/cadastro" class="btn-black-full" style="width:auto;padding:10px 20px;"><i class="fa-solid fa-plus"></i> Produto</a>
+                <a href="<?= BASE_URL ?>servicos/cadastro" class="btn-black-full" style="width:auto;padding:10px 20px;"><i class="fa-solid fa-plus"></i> Serviço</a>
             </div>
             <?php endif; ?>
         </header>
@@ -95,12 +98,12 @@ $servicos = $conn->query("SELECT * FROM servicos ORDER BY nome ASC");
                         <?php while($s = $servicos->fetch_assoc()): ?>
                         <tr>
                             <td><?= htmlspecialchars($s['nome']); ?></td>
-                            <td><?= htmlspecialchars($s['descricao']); ?></td>
+                            <td><?= htmlspecialchars($s['descricao'] ?? ''); ?></td>
                             <td>R$ <?= number_format($s['preco'], 2, ',', '.'); ?></td>
                             <?php if ($_SESSION['perfil'] == 'admin'): ?>
                             <td class="actions-cell">
-                                <a href="<?= BASE_URL ?>produtos/editar-servico?id=<?= $s['id']; ?>" class="edit-btn" title="Editar"><i class="fa-solid fa-pen-to-square"></i></a>
-                                <a href="<?= BASE_URL ?>produtos/excluir-servico?id=<?= $s['id']; ?>" class="delete-btn" title="Excluir" onclick="return confirm('Excluir este serviço?')"><i class="fa-solid fa-trash"></i></a>
+                                <a href="<?= BASE_URL ?>servicos/editar?id=<?= $s['id']; ?>" class="edit-btn" title="Editar"><i class="fa-solid fa-pen-to-square"></i></a>
+                                <a href="<?= BASE_URL ?>servicos/excluir?id=<?= $s['id']; ?>" class="delete-btn" title="Excluir" onclick="return confirm('Excluir este serviço?')"><i class="fa-solid fa-trash"></i></a>
                             </td>
                             <?php endif; ?>
                         </tr>

@@ -12,6 +12,14 @@ class EventoModel {
         return $this->conn->query("SELECT * FROM agenda ORDER BY data_evento ASC");
     }
 
+    // Responsáveis (perfil cliente) não veem eventos internos dos funcionários
+    public function listarPorPerfil($perfil) {
+        if ($perfil === 'cliente') {
+            return $this->conn->query("SELECT * FROM agenda WHERE publico_alvo IN ('Pais', 'Geral') ORDER BY data_evento ASC");
+        }
+        return $this->listarTodos();
+    }
+
     public function buscarPorId($id) {
         $stmt = $this->conn->prepare("SELECT * FROM agenda WHERE id = ?");
         $stmt->bind_param("i", $id);

@@ -69,8 +69,11 @@ A proposta é centralizar em um único sistema:
     <td align="center">
       <a href="https://github.com/JVCod1ng">
         <img src="https://github.com/JVCod1ng.png" width="100px;" alt="João Vitor Martins"/><br>
-        <sub><b>João Vitor Martins</b></sub> 
+        <sub><b>João Vitor Martins Silva</b></sub> 
       </a>
+    </td>
+    <td align="center">
+      <sub><b>Kauã Pablo Souza de Lima</b></sub>
     </td>
   </tr>
 </table>

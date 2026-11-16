@@ -8,8 +8,8 @@ class EventoController {
         $this->model = new EventoModel($conn);
     }
 
-    public function listar() {
-        return $this->model->listarTodos();
+    public function listar($perfil) {
+        return $this->model->listarPorPerfil($perfil);
     }
 
     public function buscar($id) {

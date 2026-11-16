@@ -69,6 +69,12 @@ $routes = [
     'produtos/atualizar'        => 'app/views/produtos/atualizar.php',
     'produtos/excluir'          => 'app/views/produtos/excluir.php',
 
+    'servicos/cadastro'         => 'app/views/servicos/form.php',
+    'servicos/editar'           => 'app/views/servicos/form.php',
+    'servicos/processa'         => 'app/views/servicos/salvar.php',
+    'servicos/atualizar'        => 'app/views/servicos/salvar.php',
+    'servicos/excluir'          => 'app/views/servicos/excluir.php',
+
     'fornecedores'              => 'app/views/fornecedores/listar.php',
     'fornecedores/cadastro'     => 'app/views/fornecedores/form_cadastro.php',
     'fornecedores/processa'     => 'app/views/fornecedores/processa_cadastro.php',
@@ -85,6 +91,7 @@ $routes = [
 
     'comunicacao'               => 'app/views/comunicacao.php',
     'mensagens/enviar'          => 'app/views/enviar_mensagens.php',
+    'mensagens/novas'           => 'app/views/mensagens_novas.php',
     'sobre'                     => 'app/views/sobre.php',
 ];
 

@@ -5,9 +5,11 @@ if (!isset($_SESSION['perfil']) || !in_array($_SESSION['perfil'], ['admin', 'cli
 }
 
 require_once __DIR__ . '/../../../config/database.php';
+require_once __DIR__ . '/../../../app/controllers/EventoController.php';
 
 $pagina_atual = 'agenda';
-$result = $conn->query("SELECT * FROM agenda ORDER BY data_evento ASC");
+$controller = new EventoController($conn);
+$result = $controller->listar($_SESSION['perfil']);
 $pode_editar = ($_SESSION['perfil'] === 'admin');
 ?>
 <!DOCTYPE html>
