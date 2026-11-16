@@ -126,6 +126,8 @@ $rotulos_perfil = ['admin' => 'Direção', 'usuario' => 'Professor(a)', 'cliente
                             </button>
                         </div>
                     </form>
+                    <p id="chatErro" role="alert" hidden
+                       style="margin:8px 20px 0;color:var(--error-red);font-size:0.85rem;"></p>
                 </footer>
 
                 <?php else: ?>
@@ -211,17 +213,50 @@ $rotulos_perfil = ['admin' => 'Direção', 'usuario' => 'Professor(a)', 'cliente
     if (ID_CONTATO) {
         setInterval(buscarNovas, 2000);
 
+        const chatErro  = document.getElementById('chatErro');
+        const botaoEnviar = document.querySelector('#chatForm .send-btn');
+        let enviando = false;
+
+        const ERROS_ENVIO = {
+            401: 'Sua sessão expirou. Entre novamente para enviar a mensagem.',
+            403: 'Você não pode enviar mensagens para este contato.',
+        };
+
+        function mostrarErroEnvio(texto) {
+            chatErro.textContent = texto;
+            chatErro.hidden = !texto;
+        }
+
+        // O texto só sai do campo depois que o servidor confirma a gravação (204).
+        // Em qualquer falha a mensagem continua no campo para o usuário reenviar.
         document.getElementById('chatForm').addEventListener('submit', async function (ev) {
             ev.preventDefault();
             const input = document.getElementById('msgInput');
-            if (!input.value.trim()) return;
-            const dados = new FormData(this);
-            input.value = '';
+            const texto = input.value;
+            if (!texto.trim() || enviando) return;
+
+            enviando = true;
+            botaoEnviar.disabled = true;
+            mostrarErroEnvio('');
+
             try {
-                await fetch(this.action, { method: 'POST', body: dados, headers: { 'X-Requested-With': 'fetch' } });
+                const resp = await fetch(this.action, {
+                    method: 'POST',
+                    body: new FormData(this),
+                    headers: { 'X-Requested-With': 'fetch' },
+                });
+                if (resp.status === 204) {
+                    if (input.value === texto) input.value = ''; // não apaga o que foi digitado depois
+                    await buscarNovas();
+                    objDiv.scrollTop = objDiv.scrollHeight;
+                } else {
+                    mostrarErroEnvio(ERROS_ENVIO[resp.status] || 'Não foi possível enviar a mensagem. Tente novamente.');
+                }
+            } catch (e) {
+                mostrarErroEnvio('Sem conexão. A mensagem não foi enviada; tente novamente.');
             } finally {
-                await buscarNovas();
-                objDiv.scrollTop = objDiv.scrollHeight;
+                enviando = false;
+                botaoEnviar.disabled = false;
                 input.focus();
             }
         });
