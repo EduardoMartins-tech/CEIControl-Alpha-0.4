@@ -138,12 +138,19 @@ if (session_status() === PHP_SESSION_NONE) {
                 <div class="team-grid">
                     <div class="team-member">
                         <img src="https://github.com/EduardoMartins-tech.png" alt="Eduardo Ferreira Martins">
-                        <h4 style="font-size: 1.2rem; color: var(--text-main); margin-bottom: 5px;">Eduardo F. Martins</h4>
+                        <h4 style="font-size: 1.2rem; color: var(--text-main); margin-bottom: 5px;">Eduardo Ferreira Martins</h4>
                         <p style="color: var(--primary-green); font-size: 0.9rem; font-weight: 600;">Desenvolvedor</p>
                     </div>
                     <div class="team-member">
-                        <img src="https://github.com/JVCod1ng.png" alt="João Vitor Martins">
-                        <h4 style="font-size: 1.2rem; color: var(--text-main); margin-bottom: 5px;">João Vitor Martins</h4>
+                        <img src="https://github.com/JVCod1ng.png" alt="João Vitor Martins Silva">
+                        <h4 style="font-size: 1.2rem; color: var(--text-main); margin-bottom: 5px;">João Vitor Martins Silva</h4>
+                        <p style="color: var(--primary-green); font-size: 0.9rem; font-weight: 600;">Desenvolvedor</p>
+                    </div>
+                    <div class="team-member">
+                        <div role="img" aria-label="Kauã Pablo Souza de Lima" style="width: 120px; height: 120px; border-radius: 50%; border: 4px solid var(--bg-body); margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; background: var(--primary-green); color: #fff; font-size: 3rem;">
+                            <i class="fa-solid fa-user"></i>
+                        </div>
+                        <h4 style="font-size: 1.2rem; color: var(--text-main); margin-bottom: 5px;">Kauã Pablo Souza de Lima</h4>
                         <p style="color: var(--primary-green); font-size: 0.9rem; font-weight: 600;">Desenvolvedor</p>
                     </div>
                 </div>

@@ -69,8 +69,11 @@ A proposta é centralizar em um único sistema:
     <td align="center">
       <a href="https://github.com/JVCod1ng">
         <img src="https://github.com/JVCod1ng.png" width="100px;" alt="João Vitor Martins"/><br>
-        <sub><b>João Vitor Martins</b></sub> 
+        <sub><b>João Vitor Martins Silva</b></sub> 
       </a>
+    </td>
+    <td align="center">
+      <sub><b>Kauã Pablo Souza de Lima</b></sub>
     </td>
   </tr>
 </table>
@@ -246,6 +249,7 @@ O banco já vem populado com dados para demonstração:
 2. Crie um banco chamado `ceicontrol`
 3. Importe o arquivo `tabelas.sql`
 4. O script cria automaticamente as tabelas: `usuarios`, `fornecedores`, `produtos`, `servicos`, `agenda`, `mensagens`
+5. Para o banco completo do Projeto Integrador (turmas, crianças, matrículas, frequência, cardápio, estoque, views, funções, procedures, triggers e backups), importe em seguida os scripts da pasta [`database/`](database/README.md), na ordem numérica
 
 ---
 

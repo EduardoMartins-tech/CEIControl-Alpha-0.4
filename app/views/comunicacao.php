@@ -5,23 +5,28 @@ if (!isset($_SESSION['usuario_id'])) {
 }
 
 require_once __DIR__ . '/../../config/database.php';
+require_once __DIR__ . '/../../app/models/MensagemModel.php';
 
 $pagina_atual   = 'comunicacao';
 $meu_id         = $_SESSION['usuario_id'];
+$meu_perfil     = $_SESSION['perfil'];
 $id_contato     = isset($_GET['id_contato']) ? intval($_GET['id_contato']) : 0;
 $contato_nome   = "Selecione um contato";
 $contato_perfil = "";
 
+$mensagemModel = new MensagemModel($conn);
+
 if ($id_contato > 0) {
-    $stmt = $conn->prepare("SELECT nome, perfil FROM usuarios WHERE id = ?");
-    $stmt->bind_param("i", $id_contato);
-    $stmt->execute();
-    $res = $stmt->get_result();
-    if ($user_data = $res->fetch_assoc()) {
-        $contato_nome   = $user_data['nome'];
-        $contato_perfil = $user_data['perfil'];
+    $contato = $mensagemModel->buscarContatoPermitido($meu_id, $meu_perfil, $id_contato);
+    if ($contato) {
+        $contato_nome   = $contato['nome'];
+        $contato_perfil = $contato['perfil'];
+    } else {
+        $id_contato = 0;
     }
 }
+
+$rotulos_perfil = ['admin' => 'Direção', 'usuario' => 'Professor(a)', 'cliente' => 'Responsável'];
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -62,10 +67,7 @@ if ($id_contato > 0) {
                 </div>
                 <ul class="contacts-list" id="contactsList">
                     <?php
-                    $stmt = $conn->prepare("SELECT id, nome, perfil FROM usuarios WHERE id != ?");
-                    $stmt->bind_param("i", $meu_id);
-                    $stmt->execute();
-                    $usuarios = $stmt->get_result();
+                    $usuarios = $mensagemModel->listarContatos($meu_id, $meu_perfil);
                     while($u = $usuarios->fetch_assoc()):
                     ?>
                     <li class="contact-item <?= ($id_contato == $u['id']) ? 'active' : '' ?>"
@@ -73,7 +75,7 @@ if ($id_contato > 0) {
                         <div class="avatar-icon"><i class="fa-solid fa-user"></i></div>
                         <div class="contact-info">
                             <h4><?= htmlspecialchars($u['nome']) ?></h4>
-                            <p><?= ucfirst($u['perfil']) ?></p>
+                            <p><?= $rotulos_perfil[$u['perfil']] ?? ucfirst($u['perfil']) ?></p>
                         </div>
                     </li>
                     <?php endwhile; ?>
@@ -98,14 +100,11 @@ if ($id_contato > 0) {
 
                 <div class="chat-messages" id="message-container">
                     <?php
-                    $stmt = $conn->prepare("SELECT * FROM mensagens WHERE (remetente_id = ? AND destinatario_id = ?) OR (remetente_id = ? AND destinatario_id = ?) ORDER BY data_envio ASC");
-                    $stmt->bind_param("iiii", $meu_id, $id_contato, $id_contato, $meu_id);
-                    $stmt->execute();
-                    $mensagens = $stmt->get_result();
+                    $mensagens = $mensagemModel->buscarConversa($meu_id, $id_contato);
                     while($m = $mensagens->fetch_assoc()):
                         $classe = ($m['remetente_id'] == $meu_id) ? 'sent' : 'received';
                     ?>
-                    <div class="message <?= $classe ?>">
+                    <div class="message <?= $classe ?>" data-id="<?= (int) $m['id'] ?>">
                         <p><?= htmlspecialchars($m['mensagem']) ?></p>
                         <small style="font-size:0.6rem;opacity:0.7;display:block;text-align:right;margin-top:5px;">
                             <?= date('H:i', strtotime($m['data_envio'])) ?>
@@ -115,7 +114,7 @@ if ($id_contato > 0) {
                 </div>
 
                 <footer class="chat-input-area">
-                    <form action="<?= BASE_URL ?>mensagens/enviar" method="POST" class="input-wrapper">
+                    <form action="<?= BASE_URL ?>mensagens/enviar" method="POST" class="input-wrapper" id="chatForm">
                         <input type="hidden" name="destinatario_id" value="<?= $id_contato ?>">
                         <input type="text" name="mensagem" id="msgInput" placeholder="Digite sua mensagem..." required autocomplete="off">
                         <div class="input-icons">
@@ -127,6 +126,8 @@ if ($id_contato > 0) {
                             </button>
                         </div>
                     </form>
+                    <p id="chatErro" role="alert" hidden
+                       style="margin:8px 20px 0;color:var(--error-red);font-size:0.85rem;"></p>
                 </footer>
 
                 <?php else: ?>
@@ -141,8 +142,8 @@ if ($id_contato > 0) {
                 <?php if ($id_contato > 0): ?>
                 <div class="avatar-icon large"><i class="fa-solid fa-user"></i></div>
                 <h3><?= htmlspecialchars($contato_nome) ?></h3>
-                <p style="color:#00a98f;font-weight:bold;margin-bottom:20px;"><?= ucfirst($contato_perfil) ?></p>
-                <button class="btn-profile" onclick="alert('Perfil de: <?= $contato_nome ?>')">Ver Perfil Completo</button>
+                <p style="color:#00a98f;font-weight:bold;margin-bottom:20px;"><?= $rotulos_perfil[$contato_perfil] ?? ucfirst($contato_perfil) ?></p>
+                <button class="btn-profile" onclick="alert(<?= htmlspecialchars(json_encode('Perfil de: ' . $contato_nome), ENT_QUOTES) ?>)">Ver Perfil Completo</button>
                 <ul class="profile-options">
                     <li onclick="ativarPesquisa()"><i class="fa-solid fa-magnifying-glass"></i> Pesquisar Mensagem</li>
                     <li><i class="fa-regular fa-image"></i> Imagens Enviadas</li>
@@ -160,6 +161,106 @@ if ($id_contato > 0) {
 <script>
     var objDiv = document.getElementById("message-container");
     if(objDiv) objDiv.scrollTop = objDiv.scrollHeight;
+
+    // ---------------------------------------------------------------
+    // Chat em tempo real: busca mensagens novas a cada 2 segundos e
+    // envia sem recarregar a página.
+    // ---------------------------------------------------------------
+    const ID_CONTATO = <?= (int) $id_contato ?>;
+    const URL_NOVAS  = "<?= BASE_URL ?>mensagens/novas";
+    let buscando = false;
+
+    function ultimoIdExibido() {
+        const msgs = document.querySelectorAll('#message-container .message[data-id]');
+        return msgs.length ? parseInt(msgs[msgs.length - 1].dataset.id, 10) : 0;
+    }
+
+    function adicionarMensagem(m) {
+        if (document.querySelector('#message-container .message[data-id="' + m.id + '"]')) return;
+        const div = document.createElement('div');
+        div.className = 'message ' + (m.enviada ? 'sent' : 'received');
+        div.dataset.id = m.id;
+        const p = document.createElement('p');
+        p.textContent = m.mensagem;
+        const hora = document.createElement('small');
+        hora.style.cssText = 'font-size:0.6rem;opacity:0.7;display:block;text-align:right;margin-top:5px;';
+        hora.textContent = m.hora;
+        div.appendChild(p);
+        div.appendChild(hora);
+        objDiv.appendChild(div);
+    }
+
+    async function buscarNovas() {
+        if (!ID_CONTATO || !objDiv || buscando) return;
+        buscando = true;
+        try {
+            const resp = await fetch(URL_NOVAS + '?id_contato=' + ID_CONTATO + '&depois=' + ultimoIdExibido(), { cache: 'no-store' });
+            if (resp.ok) {
+                const novas = await resp.json();
+                if (novas.length) {
+                    const noFim = objDiv.scrollHeight - objDiv.scrollTop - objDiv.clientHeight < 80;
+                    novas.forEach(adicionarMensagem);
+                    if (noFim) objDiv.scrollTop = objDiv.scrollHeight;
+                }
+            }
+        } catch (e) {
+            // sem conexão: tenta de novo no próximo ciclo
+        } finally {
+            buscando = false;
+        }
+    }
+
+    if (ID_CONTATO) {
+        setInterval(buscarNovas, 2000);
+
+        const chatErro  = document.getElementById('chatErro');
+        const botaoEnviar = document.querySelector('#chatForm .send-btn');
+        let enviando = false;
+
+        const ERROS_ENVIO = {
+            401: 'Sua sessão expirou. Entre novamente para enviar a mensagem.',
+            403: 'Você não pode enviar mensagens para este contato.',
+        };
+
+        function mostrarErroEnvio(texto) {
+            chatErro.textContent = texto;
+            chatErro.hidden = !texto;
+        }
+
+        // O texto só sai do campo depois que o servidor confirma a gravação (204).
+        // Em qualquer falha a mensagem continua no campo para o usuário reenviar.
+        document.getElementById('chatForm').addEventListener('submit', async function (ev) {
+            ev.preventDefault();
+            const input = document.getElementById('msgInput');
+            const texto = input.value;
+            if (!texto.trim() || enviando) return;
+
+            enviando = true;
+            botaoEnviar.disabled = true;
+            mostrarErroEnvio('');
+
+            try {
+                const resp = await fetch(this.action, {
+                    method: 'POST',
+                    body: new FormData(this),
+                    headers: { 'X-Requested-With': 'fetch' },
+                });
+                if (resp.status === 204) {
+                    if (input.value === texto) input.value = ''; // não apaga o que foi digitado depois
+                    await buscarNovas();
+                    objDiv.scrollTop = objDiv.scrollHeight;
+                } else {
+                    mostrarErroEnvio(ERROS_ENVIO[resp.status] || 'Não foi possível enviar a mensagem. Tente novamente.');
+                }
+            } catch (e) {
+                mostrarErroEnvio('Sem conexão. A mensagem não foi enviada; tente novamente.');
+            } finally {
+                enviando = false;
+                botaoEnviar.disabled = false;
+                input.focus();
+            }
+        });
+    }
 
     function ativarPesquisa() {
         let termo = prompt("O que você deseja buscar nesta conversa?");
