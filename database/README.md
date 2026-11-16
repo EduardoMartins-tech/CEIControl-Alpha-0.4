@@ -19,7 +19,7 @@ No phpMyAdmin: importe `tabelas.sql` e depois os arquivos `01` a `10`, nessa ord
 
 | Item | Exigido | Entregue | Arquivo |
 |---|---|---|---|
-| 1. Modelagem (DER) | ≥ 7 entidades | 17 entidades, 2 associativas N:N | este README (diagrama abaixo) |
+| 1. Modelagem (DER) | ≥ 7 entidades | 17 entidades, 2 associativas N:N | `DER_CEIControl.png` e este README |
 | 2. DDL com PK, FK, NOT NULL, UNIQUE | ≥ 5 tabelas | 11 tabelas novas + ALTER em `produtos` (também com CHECK) | `01_estrutura_ddl.sql` |
 | 3. INSERT | ≥ 10 por tabela e ≥ 5 com SUBSELECT | 10 a 420 registros em todas as 17 tabelas; 11 INSERTs com subselect (marcados `[INSERT+SUBSELECT]`) | `05_carga_dados.sql` |
 | 4. UPDATE com WHERE | ≥ 5 | 9 (igualdade, IS NULL, LIKE, IN + subquery, BETWEEN, NOT IN, UPDATE com JOIN) | `06_atualizacoes_remocoes.sql` |
@@ -37,6 +37,8 @@ No phpMyAdmin: importe `tabelas.sql` e depois os arquivos `01` a `10`, nessa ord
 | 16. Backups (completo e diferencial/parcial) | ≥ 5 | 8 modos no script (completo, estrutura, dados, parcial, diferencial, incremental, restauração, verificação) + snapshot e diferencial em SQL | `backup/backup_ceicontrol.sh`, `10_backup_logico.sql` |
 
 ## DER (modelo lógico)
+
+Imagem do diagrama: [`DER_CEIControl.png`](DER_CEIControl.png) (também em [SVG](DER_CEIControl.svg)). O código abaixo gera o mesmo diagrama no GitHub.
 
 ```mermaid
 erDiagram
